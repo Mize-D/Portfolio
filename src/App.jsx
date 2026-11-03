@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   ArrowDown, ArrowRight, ArrowUpRight, Github, Linkedin, Mail, Menu, X,
-  Code2, Database, Layers3, Terminal, ExternalLink, CheckCircle2, MapPin,
+  Code2, Database, Layers3, Terminal, ShieldCheck, GitBranch, ExternalLink, CheckCircle2, MapPin,
   Download, BriefcaseBusiness, GraduationCap, ChevronUp, Sparkles
 } from 'lucide-react'
 import { profile, skills, projects, experience } from './data'
@@ -10,6 +11,143 @@ import { profile, skills, projects, experience } from './data'
 const fadeUp = {
   hidden: { opacity: 0, y: 22 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
+}
+
+const navItems = [['Welcome', '#home', '00'], ['About', '#about', '01'], ['Skills', '#skills', '02'], ['Projects', '#projects', '03'], ['Experience', '#experience', '04'], ['Education', '#education', '05'], ['Contact', '#contact', '06']]
+const seaCreatureKinds = ['jellyfish', 'octopus', 'turtle', 'crab', 'whale', 'dolphin', 'pufferfish', 'seal', 'shrimp', 'shark']
+const seaCreatureEmojis = { jellyfish: '🪼', octopus: '🐙', turtle: '🐢', crab: '🦀', whale: '🐋', dolphin: '🐬', pufferfish: '🐡', seal: '🦭', shrimp: '🦐', shark: '🦈' }
+const initialCreatureCount = 50
+const maximumCreatureCount = 100
+
+function makeSeaCreature(index, entering = false) {
+  const kind = seaCreatureKinds[Math.floor(Math.random() * seaCreatureKinds.length)]
+  const size = 44 + Math.random() * 38
+  const width = document.documentElement.clientWidth || window.innerWidth
+
+  return {
+    id: `${kind}-${index}`,
+    kind,
+    left: 4 + Math.random() * 88,
+    top: 5 + Math.random() * 90,
+    size,
+    opacity: .24 + Math.random() * .18,
+    entering,
+    popping: false,
+    entryX: 0,
+    entryY: 0,
+    delay: `${-Math.random() * 12}s`,
+    duration: `${7 + Math.random() * 7}s`,
+  }
+}
+
+function makeSeaCreatures() {
+  return Array.from({ length: initialCreatureCount }, (_, index) => makeSeaCreature(index))
+}
+
+function makeEnteringCreature(index) {
+  const creature = makeSeaCreature(index, true)
+  const width = document.documentElement.clientWidth || window.innerWidth
+  const minX = window.innerWidth >= 900 ? 220 : 16
+  const viewportY = Math.random() * window.innerHeight
+  const targetX = minX + Math.random() * Math.max(80, width - minX - creature.size - 24)
+  const targetY = window.scrollY + viewportY
+  const pageHeight = Math.max(document.documentElement.scrollHeight, targetY + window.innerHeight)
+  const side = Math.floor(Math.random() * 4)
+  const entryX = side === 0 ? minX - targetX - creature.size : side === 1 ? width - targetX + creature.size : 0
+  const entryY = side === 2 ? -viewportY - creature.size : side === 3 ? window.innerHeight - viewportY + creature.size : 0
+
+  return { ...creature, left: targetX / width * 100, top: targetY / pageHeight * 100, entryX, entryY }
+}
+
+function SeaCreatures() {
+  const [creatures, setCreatures] = useState(makeSeaCreatures)
+  const nextCreatureIndex = useRef(initialCreatureCount)
+
+  useEffect(() => {
+    const spawnTimer = window.setInterval(() => {
+      const newCreatures = [
+        makeEnteringCreature(nextCreatureIndex.current++),
+        makeEnteringCreature(nextCreatureIndex.current++),
+      ]
+      setCreatures((current) => [...current, ...newCreatures].slice(-maximumCreatureCount))
+    }, 3000)
+    return () => window.clearInterval(spawnTimer)
+  }, [])
+
+  const popCreature = (id) => {
+    setCreatures((current) => current.map((creature) => creature.id === id ? { ...creature, popping: true } : creature))
+  }
+
+  const removePoppedCreature = (id) => {
+    setCreatures((current) => current.filter((creature) => creature.id !== id))
+  }
+
+  return <div className="ocean-creatures" aria-hidden="true">
+    {creatures.map((creature) => <div
+      key={creature.id}
+      className={`sea-creature sea-creature-${creature.kind}${creature.popping ? ' sea-creature-popping' : ''}`}
+      style={{ left: `${creature.left}%`, top: `${creature.top}%`, width: creature.size, height: creature.size, opacity: creature.opacity, animationDelay: creature.delay, '--float-duration': creature.duration, '--creature-size': `${creature.size}px`, '--entry-x': `${creature.entryX}px`, '--entry-y': `${creature.entryY}px` }}
+      onPointerEnter={(event) => { if (event.pointerType === 'mouse' && !creature.popping) popCreature(creature.id) }}
+    >
+      <span className={`sea-creature-visual${creature.entering ? ' sea-creature-entering' : ''}`} onAnimationEnd={(event) => {
+        if (creature.popping && event.animationName === 'sea-creature-pop') removePoppedCreature(creature.id)
+      }}>
+        <span className="sea-creature-emoji">{seaCreatureEmojis[creature.kind]}</span>
+      </span>
+    </div>)}
+  </div>
+}
+
+function CursorBubbles() {
+  const [bubbles, setBubbles] = useState([])
+  const nextBubbleId = useRef(0)
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return undefined
+    let lastSpawnAt = 0
+    const handlePointerMove = (event) => {
+      if (event.pointerType !== 'mouse') return
+      const now = performance.now()
+      if (now - lastSpawnAt < 38) return
+      lastSpawnAt = now
+
+      const newBubbles = Array.from({ length: 3 }, () => {
+        const drift = (Math.random() - .5) * 54
+        const rise = -(24 + Math.random() * 42)
+        return {
+          id: nextBubbleId.current++,
+          x: event.clientX + (Math.random() - .5) * 28,
+          y: event.clientY + (Math.random() - .5) * 22,
+          size: 5 + Math.random() * 10,
+          drift: `${drift}px`,
+          rise: `${rise}px`,
+          midDrift: `${drift * .45}px`,
+          midRise: `${rise * .45}px`,
+          duration: `${.72 + Math.random() * .52}s`,
+          delay: `${Math.random() * .1}s`,
+        }
+      })
+
+      setBubbles((current) => [...current, ...newBubbles].slice(-72))
+    }
+
+    window.addEventListener('pointermove', handlePointerMove, { passive: true })
+    return () => window.removeEventListener('pointermove', handlePointerMove)
+  }, [])
+
+  const removeBubble = (id) => setBubbles((current) => current.filter((bubble) => bubble.id !== id))
+
+  return createPortal(
+    <div className="cursor-bubble-layer" aria-hidden="true">
+      {bubbles.map((bubble) => <i
+        key={bubble.id}
+        className="cursor-bubble"
+        style={{ left: bubble.x, top: bubble.y, '--bubble-size': `${bubble.size}px`, '--bubble-drift': bubble.drift, '--bubble-rise': bubble.rise, '--bubble-mid-drift': bubble.midDrift, '--bubble-mid-rise': bubble.midRise, '--bubble-duration': bubble.duration, '--bubble-delay': bubble.delay }}
+        onAnimationEnd={(event) => { if (!event.pseudoElement) removeBubble(bubble.id) }}
+      />)}
+    </div>,
+    document.body,
+  )
 }
 
 function SectionHeading({ number, eyebrow, title, description }) {
@@ -29,7 +167,7 @@ function SocialLink({ href, label, children }) {
 
 function ProjectCard({ project, onOpen }) {
   return (
-    <motion.article className="project-card" variants={fadeUp}>
+    <motion.article className="project-card" variants={fadeUp} whileHover={{ y: -6, transition: { duration: .22, ease: 'easeOut' } }} whileTap={{ scale: .99 }}>
       <button className="project-visual" onClick={() => onOpen(project)} aria-label={`View ${project.name} details`}>
         <img src={project.image} alt={project.imageAlt} />
         <span className="visual-number">{project.number}</span>
@@ -61,7 +199,7 @@ function ProjectModal({ project, onClose }) {
           <div className="contribution-note"><strong>My contribution</strong><br />{project.contribution}</div>
           <h4>Technology stack</h4>
           <div className="tag-list">{project.stack.map((item) => <span className="tag" key={item}>{item}</span>)}</div>
-          <p className="small-note">{project.note}</p>
+          {project.note && <p className="small-note">{project.note}</p>}
           {(project.demoUrl || project.sourceUrl) && <div className="modal-actions">
             {project.demoUrl && <a className="button button-primary" href={project.demoUrl} target="_blank" rel="noreferrer">Live demo <ExternalLink size={16} /></a>}
             {project.sourceUrl && <a className="button button-secondary" href={project.sourceUrl} target="_blank" rel="noreferrer">Source code <Github size={16} /></a>}
@@ -75,28 +213,65 @@ function ProjectModal({ project, onClose }) {
 export default function App() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [activeProject, setActiveProject] = useState(null)
-  const navItems = [['About', '#about'], ['Skills', '#skills'], ['Projects', '#projects'], ['Experience', '#experience'], ['Education', '#education'], ['Contact', '#contact']]
+  const [activeSection, setActiveSection] = useState('')
+  const activeSectionRef = useRef('')
+  const pendingSectionRef = useRef('')
   const closeMenu = () => setMenuOpen(false)
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const atPageEnd = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 80
+      let currentSection = atPageEnd ? '#contact' : ''
+      if (!atPageEnd) {
+        document.querySelectorAll('main section[id]').forEach((section) => {
+          if (section.getBoundingClientRect().top <= 160) currentSection = `#${section.id}`
+        })
+      }
+      if (pendingSectionRef.current) {
+        const pendingTarget = pendingSectionRef.current === '#home'
+          ? null
+          : document.querySelector(pendingSectionRef.current)
+        const pendingReached = pendingSectionRef.current === '#home'
+          ? window.scrollY < 80
+          : pendingSectionRef.current === '#contact'
+            ? atPageEnd || pendingTarget?.getBoundingClientRect().top <= 160
+            : pendingTarget?.getBoundingClientRect().top <= 160
+
+        if (pendingReached) {
+          currentSection = pendingSectionRef.current
+          pendingSectionRef.current = ''
+        } else currentSection = pendingSectionRef.current
+      } else if (window.scrollY < 80) currentSection = '#home'
+      else if (!currentSection) currentSection = activeSectionRef.current
+
+      if (currentSection !== activeSectionRef.current) {
+        activeSectionRef.current = currentSection
+        setActiveSection(currentSection)
+      }
+    }
+
+    updateActiveSection()
+    window.addEventListener('scroll', updateActiveSection, { passive: true })
+    return () => window.removeEventListener('scroll', updateActiveSection)
+  }, [])
 
   return (
     <div className="app-shell" id="home">
       <div className="ambient ambient-one" /><div className="ambient ambient-two" />
+      <SeaCreatures />
       <header className="site-header">
-        <a href="#home" className="brand" onClick={closeMenu}><span className="brand-mark">&lt;/&gt;</span>{profile.brand}<span className="brand-dot">.</span></a>
         <button className="mobile-menu-button" onClick={() => setMenuOpen(!menuOpen)} aria-label="Toggle navigation">{menuOpen ? <X /> : <Menu />}</button>
         <nav className={menuOpen ? 'nav-links nav-open' : 'nav-links'}>
-          {navItems.map(([label, href]) => <a key={label} href={href} onClick={closeMenu}>{label}</a>)}
-          <a className="nav-contact" href="#contact" onClick={closeMenu}>Let's talk <ArrowUpRight size={15} /></a>
+          {navItems.map(([label, href, number]) => <a key={label} className={activeSection === href ? 'nav-item nav-item-active' : 'nav-item'} href={href} onClick={() => { closeMenu(); pendingSectionRef.current = href; activeSectionRef.current = href; setActiveSection(href) }} aria-current={activeSection === href ? 'location' : undefined}><span className="nav-index">{number}</span>{label}</a>)}
         </nav>
       </header>
 
       <main>
         <section className="hero section-wrap">
           <motion.div className="hero-copy" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: .11 } } }}>
-            <motion.div className="availability" variants={fadeUp}><span className="availability-dot" /> OPEN TO BACKEND OPPORTUNITIES</motion.div>
-            <motion.p className="hero-intro" variants={fadeUp}>Hello, I'm <span>{profile.fullName}</span>.</motion.p>
+            <motion.a className="hero-brand" href="#home" variants={fadeUp}>{profile.brand}</motion.a>
+            <motion.div className="availability" variants={fadeUp}><span className="availability-dot" /> BACKEND DEVELOPER · FPT UNIVERSITY</motion.div>
             <motion.h1 variants={fadeUp}>Building the<br /><span className="gradient-text">logic behind</span><br />the web.</motion.h1>
-            <motion.p className="hero-description" variants={fadeUp}>I'm a {profile.role} interested in building reliable APIs, thoughtful database structures, and maintainable web applications.</motion.p>
+            <motion.p className="hero-description" variants={fadeUp}>I build RESTful APIs, implement backend logic, and connect databases with frontend applications.</motion.p>
             <motion.div className="hero-actions" variants={fadeUp}>
               <a className="button button-primary" href="#projects">Explore my work <ArrowUpRight size={17} /></a>
               <a className="button button-secondary" href={profile.cvPath} download><Download size={16} /> Download CV</a>
@@ -115,7 +290,7 @@ export default function App() {
               <div className="code-body">
                 <div><span className="line-number">01</span><span className="code-purple">const</span> <span className="code-blue">developer</span> = {'{'}</div>
                 <div><span className="line-number">02</span>&nbsp;&nbsp;name: <span className="code-green">'{profile.name}'</span>,</div>
-                <div><span className="line-number">03</span>&nbsp;&nbsp;role: <span className="code-green">'Backend Developer'</span>,</div>
+                <div><span className="line-number">03</span>&nbsp;&nbsp;role: <span className="code-green">'{profile.role}'</span>,</div>
                 <div><span className="line-number">04</span>&nbsp;&nbsp;focus: [</div>
                 <div><span className="line-number">05</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Java & Node.js'</span>,</div>
                 <div><span className="line-number">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'REST APIs'</span>,</div>
@@ -138,14 +313,19 @@ export default function App() {
           <div className="about-grid">
             <div className="about-main">
               <p className="about-lead">I enjoy turning complex requirements into software that is <span>useful, maintainable, and dependable.</span></p>
-              <p>My focus is backend development — designing data models, implementing business logic, and building APIs that connect applications. Through academic projects and internship experience, I've also worked across frontend integration and collaborative development workflows.</p>
-              <p>I'm continuing to strengthen my engineering fundamentals and looking for an opportunity to contribute, learn from a team, and grow as a developer.</p>
+              <p>Backend developer focused on APIs, data design, and the logic that connects useful products. I bring hands-on experience from an internship and collaborative full-stack projects.</p>
             </div>
-            <div className="about-facts">
-              <div className="fact-card"><span className="fact-icon"><BriefcaseBusiness size={19} /></span><div><strong>Backend-focused</strong><small>Professional direction</small></div></div>
-              <div className="fact-card"><span className="fact-icon"><Layers3 size={19} /></span><div><strong>Full-stack project work</strong><small>Academic experience</small></div></div>
-              <div className="fact-card"><span className="fact-icon"><MapPin size={19} /></span><div><strong>{profile.location}</strong><small>Based in</small></div></div>
-            </div>
+            <motion.div className="architecture-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <div className="architecture-top"><span><i className="architecture-pulse" /> REQUEST FLOW</span><span>LOS / SYSTEM MAP</span></div>
+              <div className="architecture-flow">
+                <div className="flow-node"><span className="flow-icon"><Code2 size={19} /></span><strong>Client</strong><small>Frontend</small></div>
+                <div className="flow-connector"><ArrowRight size={17} /><i /></div>
+                <div className="flow-node flow-node-focus"><span className="flow-icon"><Layers3 size={19} /></span><strong>API</strong><small>Java · Node</small></div>
+                <div className="flow-connector"><ArrowRight size={17} /><i /></div>
+                <div className="flow-node"><span className="flow-icon"><Database size={19} /></span><strong>Data</strong><small>Mongo · SQL</small></div>
+              </div>
+              <div className="architecture-bottom"><span>DESIGN</span><b>→</b><span>BUILD</span><b>→</b><span>IMPROVE</span></div>
+            </motion.div>
           </div>
         </section>
 
@@ -153,7 +333,7 @@ export default function App() {
           <SectionHeading number="02" eyebrow="TECHNICAL TOOLKIT" title="Tools for building the backend." description="Technologies used or studied through projects, internship, and hands-on learning." />
           <div className="skills-grid">
             {skills.map((group, index) => {
-              const Icon = [Code2, Database, Layers3, Terminal][index]
+              const Icon = [Code2, Layers3, Database, ShieldCheck, GitBranch][index]
               return <motion.div className="skill-card" key={group.group} variants={fadeUp}><div className="skill-card-top"><span className="skill-icon"><Icon size={20} /></span><span className="skill-index">0{index + 1}</span></div><h3>{group.group}</h3><p>{group.focus}</p><div className="skill-items">{group.items.map((item) => <span key={item}>{item}</span>)}</div></motion.div>
             })}
           </div>
@@ -200,10 +380,9 @@ export default function App() {
       </main>
 
       <footer className="site-footer section-wrap">
-        <a href="#home" className="brand"><span className="brand-mark">&lt;/&gt;</span>{profile.brand}<span className="brand-dot">.</span></a>
-        <span>Designed & built with care · {new Date().getFullYear()}</span>
-        <a href="#home" className="back-top">Back to top <ChevronUp size={15} /></a>
+        <a href="#home" className="back-top back-top-centered">Back to top <ChevronUp size={18} /></a>
       </footer>
+      <CursorBubbles />
       <ProjectModal project={activeProject} onClose={() => setActiveProject(null)} />
     </div>
   )
