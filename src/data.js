@@ -1,21 +1,21 @@
 export const profile = {
-  name: 'LOS',
+  name: 'Minh Duy aka LOS',
   fullName: 'Minh Duy',
   brand: 'LOS’s Portfolio',
-  role: 'Junior Backend Developer',
+  role: 'Backend Developer',
   location: 'Ninh Kieu, Can Tho, Vietnam',
   email: 'minhduy280202@gmail.com',
   github: 'https://github.com/Mize-D',
   linkedin: 'https://www.linkedin.com/in/mizedlos/',
-  cvPath: '/cv.pdf',
+  cvPath: '/projects/CV-TRAN_MINH_DUY-BACKEND_DEVELOPER.pdf',
 }
 
 export const skills = [
-  { group: 'Languages', focus: 'Programming languages', items: ['Java', 'JavaScript', 'C#'] },
-  { group: 'Backend', focus: 'Services & APIs', items: ['Node.js', 'Express.js', 'Spring Boot', 'Java Servlet', 'RESTful API', 'WebSocket'] },
-  { group: 'Databases', focus: 'Database systems', items: ['MongoDB', 'SQL Server'] },
-  { group: 'Authentication', focus: 'Authentication methods', items: ['JWT', 'OAuth 2.0'] },
-  { group: 'Version Control', focus: 'Source control', items: ['Git', 'GitHub'] },
+  { group: 'Languages', items: ['Java', 'JavaScript', 'C#'] },
+  { group: 'Backend', items: ['Node.js', 'Express.js', 'Spring Boot', 'Java Servlet', 'RESTful API', 'WebSocket'] },
+  { group: 'Databases', items: ['MongoDB', 'SQL Server'] },
+  { group: 'Authentication', items: ['JWT', 'OAuth 2.0'] },
+  { group: 'Version Control', items: ['Git', 'GitHub'] },
 ]
 
 export const experience = [
@@ -57,10 +57,10 @@ export const projects = [
     name: 'ROY SNEAKERS',
     type: 'Academic Project',
     role: 'Backend Developer',
-    summary: 'Backend development for a sports-footwear e-commerce project.',
+    summary: 'Backend development for a sports-footwear project.',
     description: 'Built backend functionality and business logic, processed application data, and integrated backend features with frontend components as part of an academic team project.',
     highlights: [
-      'Developed backend functionality for an e-commerce platform specializing in sports footwear.',
+      'Developed backend functionality for an platform specializing in sports footwear.',
       'Implemented business logic to support application requirements.',
       'Managed data processing and backend integration with frontend components.',
       'Collaborated with teammates to develop and complete the application.',
@@ -70,6 +70,6 @@ export const projects = [
     sourceUrl: '',
     demoUrl: '',
     image: '/projects/roy-sneakers-preview.svg',
-    imageAlt: 'Illustrative visual for the ROY SNEAKERS e-commerce project',
+    imageAlt: 'Illustrative visual for the ROY SNEAKERS project',
   },
 ]

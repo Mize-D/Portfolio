@@ -13,7 +13,7 @@ const fadeUp = {
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: 'easeOut' } },
 }
 
-const navItems = [['Welcome', '#home', '00'], ['About', '#about', '01'], ['Skills', '#skills', '02'], ['Projects', '#projects', '03'], ['Experience', '#experience', '04'], ['Education', '#education', '05'], ['Contact', '#contact', '06']]
+const navItems = [['Welcome', '#home', '00'], ['About', '#about', '01'], ['Skills', '#skills', '02'], ['Projects', '#projects', '03'], ['Education & Experience', '#education', '04'], ['Contact', '#contact', '05']]
 const seaCreatureKinds = ['jellyfish', 'octopus', 'turtle', 'crab', 'whale', 'dolphin', 'pufferfish', 'seal', 'shrimp', 'shark']
 const seaCreatureEmojis = { jellyfish: '🪼', octopus: '🐙', turtle: '🐢', crab: '🦀', whale: '🐋', dolphin: '🐬', pufferfish: '🐡', seal: '🦭', shrimp: '🦐', shark: '🦈' }
 const initialCreatureCount = 50
@@ -88,6 +88,7 @@ function SeaCreatures() {
       className={`sea-creature sea-creature-${creature.kind}${creature.popping ? ' sea-creature-popping' : ''}`}
       style={{ left: `${creature.left}%`, top: `${creature.top}%`, width: creature.size, height: creature.size, opacity: creature.opacity, animationDelay: creature.delay, '--float-duration': creature.duration, '--creature-size': `${creature.size}px`, '--entry-x': `${creature.entryX}px`, '--entry-y': `${creature.entryY}px` }}
       onPointerEnter={(event) => { if (event.pointerType === 'mouse' && !creature.popping) popCreature(creature.id) }}
+      onClick={() => { if (!creature.popping) popCreature(creature.id) }}
     >
       <span className={`sea-creature-visual${creature.entering ? ' sea-creature-entering' : ''}`} onAnimationEnd={(event) => {
         if (creature.popping && event.animationName === 'sea-creature-pop') removePoppedCreature(creature.id)
@@ -216,6 +217,7 @@ export default function App() {
   const [activeSection, setActiveSection] = useState('')
   const activeSectionRef = useRef('')
   const pendingSectionRef = useRef('')
+  const sectionClassName = (sectionId, baseClass = 'section-wrap section-block') => `${baseClass}${activeSection && activeSection !== `#${sectionId}` ? ' section-muted' : ''}`
   const closeMenu = () => setMenuOpen(false)
   useEffect(() => {
     const updateActiveSection = () => {
@@ -266,7 +268,7 @@ export default function App() {
       </header>
 
       <main>
-        <section className="hero section-wrap">
+        <section className={sectionClassName('home', 'hero section-wrap')}>
           <motion.div className="hero-copy" initial="hidden" animate="visible" variants={{ visible: { transition: { staggerChildren: .11 } } }}>
             <motion.a className="hero-brand" href="#home" variants={fadeUp}>{profile.brand}</motion.a>
             <motion.div className="availability" variants={fadeUp}><span className="availability-dot" /> BACKEND DEVELOPER · FPT UNIVERSITY</motion.div>
@@ -292,13 +294,15 @@ export default function App() {
                 <div><span className="line-number">02</span>&nbsp;&nbsp;name: <span className="code-green">'{profile.name}'</span>,</div>
                 <div><span className="line-number">03</span>&nbsp;&nbsp;role: <span className="code-green">'{profile.role}'</span>,</div>
                 <div><span className="line-number">04</span>&nbsp;&nbsp;focus: [</div>
-                <div><span className="line-number">05</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Java & Node.js'</span>,</div>
-                <div><span className="line-number">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'REST APIs'</span>,</div>
-                <div><span className="line-number">07</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Database design'</span></div>
-                <div><span className="line-number">08</span>&nbsp;&nbsp;],</div>
-                <div><span className="line-number">09</span>&nbsp;&nbsp;learning: <span className="code-orange">true</span>,</div>
-                <div><span className="line-number">10</span>{'}'};</div>
-                <div className="code-cursor-line"><span className="line-number">11</span><span className="code-comment">// Build. Learn. Improve.</span><span className="cursor" /></div>
+                <div><span className="line-number">05</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Java & C#'</span>,</div>
+                <div><span className="line-number">06</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Node.js & Express.js'</span>,</div>
+                <div><span className="line-number">07</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'RESTful APIs'</span></div>
+                <div><span className="line-number">08</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'MongoDB, SQL Server'</span></div>
+                <div><span className="line-number">09</span>&nbsp;&nbsp;&nbsp;&nbsp;<span className="code-green">'Git & GitHub'</span></div>
+                <div><span className="line-number">10</span>&nbsp;&nbsp;],</div>
+                <div><span className="line-number">11</span>&nbsp;&nbsp;learning: <span className="code-orange">true</span>,</div>
+                <div><span className="line-number">12</span>{'}'};</div>
+                <div className="code-cursor-line"><span className="line-number">13</span><span className="code-comment">// Build. Learn. Improve.</span><span className="cursor" /></div>
               </div>
               <div className="window-footer"><span><span className="footer-status" /> Backend development</span><span>UTF-8</span></div>
             </div>
@@ -308,15 +312,15 @@ export default function App() {
           <a className="scroll-cue" href="#about"><span>SCROLL TO EXPLORE</span><ArrowDown size={15} /></a>
         </section>
 
-        <section className="section-wrap section-block" id="about">
-          <SectionHeading number="01" eyebrow="ABOUT ME" title="Curious by nature. Backend by focus." description="A little about the developer behind the screen." />
+        <section className={sectionClassName('about')} id="about">
+          <SectionHeading number="01" eyebrow="ABOUT ME" title="Curious by nature. Backend by focus." description="A little about the developer (Its me 🙋‍♂️) behind the screen." />
           <div className="about-grid">
             <div className="about-main">
               <p className="about-lead">I enjoy turning complex requirements into software that is <span>useful, maintainable, and dependable.</span></p>
               <p>Backend developer focused on APIs, data design, and the logic that connects useful products. I bring hands-on experience from an internship and collaborative full-stack projects.</p>
             </div>
             <motion.div className="architecture-card" initial={{ opacity: 0, y: 18 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
-              <div className="architecture-top"><span><i className="architecture-pulse" /> REQUEST FLOW</span><span>LOS / SYSTEM MAP</span></div>
+              <div className="architecture-top"><span><i className="architecture-pulse" /> REQUEST FLOW</span><span>SYSTEM MAP</span></div>
               <div className="architecture-flow">
                 <div className="flow-node"><span className="flow-icon"><Code2 size={19} /></span><strong>Client</strong><small>Frontend</small></div>
                 <div className="flow-connector"><ArrowRight size={17} /><i /></div>
@@ -329,7 +333,7 @@ export default function App() {
           </div>
         </section>
 
-        <section className="section-wrap section-block" id="skills">
+        <section className={sectionClassName('skills')} id="skills">
           <SectionHeading number="02" eyebrow="TECHNICAL TOOLKIT" title="Tools for building the backend." description="Technologies used or studied through projects, internship, and hands-on learning." />
           <div className="skills-grid">
             {skills.map((group, index) => {
@@ -339,7 +343,7 @@ export default function App() {
           </div>
         </section>
 
-        <section className="section-wrap section-block" id="projects">
+        <section className={sectionClassName('projects')} id="projects">
           <SectionHeading number="03" eyebrow="SELECTED WORK" title="Projects, not just code." description="A closer look at the problems I worked on and the contributions I made." />
           <motion.div className="projects-grid" initial="hidden" whileInView="visible" viewport={{ once: true, amount: .12 }} variants={{ visible: { transition: { staggerChildren: .13 } } }}>
             {projects.map((project) => <ProjectCard key={project.id} project={project} onOpen={setActiveProject} />)}
@@ -347,30 +351,25 @@ export default function App() {
           <p className="project-footnote"><Sparkles size={14} /> Project descriptions highlight my own contributions within team projects.</p>
         </section>
 
-        <section className="section-wrap section-block" id="experience">
-          <SectionHeading number="04" eyebrow="EXPERIENCE" title="Where I started building." description="Early professional exposure to software development." />
+        <section className={sectionClassName('education')} id="education">
+          <SectionHeading number="04" eyebrow="EDUCATION & EXPERIENCE" title="Where I learned to build." description="Professional experience and academic background." />
           <div className="experience-list">
             {experience.map((item) => <article className="experience-card" key={item.role}>
               <div className="experience-icon"><BriefcaseBusiness size={20} /></div>
               <div className="experience-main"><span className="eyebrow">INTERNSHIP</span><h3>{item.role}</h3><p className="experience-company">{item.company} <span>·</span> {item.location}</p><p className="experience-description">{item.description}</p><div className="tag-list">{item.tags.map(tag => <span className="tag" key={tag}>{tag}</span>)}</div></div>
               <span className="experience-period">{item.period}</span>
             </article>)}
+            <div className="education-card">
+              <div className="education-icon"><GraduationCap size={24} /></div>
+              <div><span className="eyebrow">BACHELOR'S DEGREE</span><h3>Software Engineering</h3><p>FPT University · Can Tho Campus</p></div>
+              <span className="education-period">2021 — 2026</span>
+            </div>
           </div>
         </section>
 
-        <section className="section-wrap section-block" id="education">
-          <SectionHeading number="05" eyebrow="EDUCATION" title="The foundation." description="Academic background and continuous learning." />
-          <div className="education-card">
-            <div className="education-icon"><GraduationCap size={24} /></div>
-            <div><span className="eyebrow">BACHELOR'S DEGREE</span><h3>Software Engineering</h3><p>FPT University · Can Tho Campus</p></div>
-            <span className="education-period">2021 — 2026</span>
-          </div>
-        </section>
-
-        <section className="section-wrap contact-section" id="contact">
+        <section className={sectionClassName('contact', 'section-wrap contact-section')} id="contact">
           <div className="contact-panel">
             <div className="contact-glow" />
-            <span className="eyebrow">06 / GET IN TOUCH</span>
             <h2>Have a project or<br /><span className="gradient-text">an opportunity?</span></h2>
             <p>I'm open to connecting with teams and people working on meaningful software. Let's start a conversation.</p>
             <a className="button button-primary" href={`mailto:${profile.email}`}>Get in touch <ArrowUpRight size={17} /></a>
